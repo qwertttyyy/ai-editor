@@ -8,7 +8,7 @@ Roadmap — необязательный высокоуровневый спис
 
 - базовый редактор;
 - autocomplete;
-- Ollama integration;
+- managed llama.cpp runtime;
 - file operations;
 - model management;
 - local inference improvements;

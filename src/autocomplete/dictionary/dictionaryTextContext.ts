@@ -1,4 +1,5 @@
 import type { SuggestionRange, SuggestionRequest } from "../types";
+import type { SupportedLanguage } from "../../shared/language";
 
 export type DictionaryMatchContextKind = "word" | "phrase";
 
@@ -10,13 +11,16 @@ export interface DictionaryMatchContext {
   tokenCount: number;
 }
 
-interface CyrillicToken {
+interface DictionaryToken {
   text: string;
   from: number;
   to: number;
 }
 
-const cyrillicTokenPattern = /[А-Яа-яЁё-]+/gu;
+const tokenPatterns: Record<SupportedLanguage, RegExp> = {
+  ru: /[А-Яа-яЁё-]+/gu,
+  en: /[A-Za-z'-]+/gu,
+};
 const maxPhraseTokenCount = 4;
 
 export function getDictionaryMatchContexts(
@@ -24,14 +28,22 @@ export function getDictionaryMatchContexts(
 ): DictionaryMatchContext[] {
   const contexts: DictionaryMatchContext[] = [];
 
-  addContext(contexts, {
-    value: request.prefix,
-    replacementRange: request.replacementRange,
-    kind: "word",
-    tokenCount: 1,
-  });
+  addContext(
+    contexts,
+    {
+      value: request.prefix,
+      replacementRange: request.replacementRange,
+      kind: "word",
+      tokenCount: 1,
+    },
+    request.language,
+  );
 
-  const tokens = getCyrillicTokensBeforeCursor(request.text, request.cursorPosition);
+  const tokens = getLanguageTokensBeforeCursor(
+    request.text,
+    request.cursorPosition,
+    request.language,
+  );
   const maxTokenCount = Math.min(maxPhraseTokenCount, tokens.length);
 
   for (let tokenCount = 2; tokenCount <= maxTokenCount; tokenCount += 1) {
@@ -42,29 +54,37 @@ export function getDictionaryMatchContexts(
       continue;
     }
 
-    addContext(contexts, {
-      value: request.text.slice(phraseStart, request.cursorPosition),
-      replacementRange: {
-        from: phraseStart,
-        to: request.cursorPosition,
+    addContext(
+      contexts,
+      {
+        value: request.text.slice(phraseStart, request.cursorPosition),
+        replacementRange: {
+          from: phraseStart,
+          to: request.cursorPosition,
+        },
+        kind: "phrase",
+        tokenCount,
       },
-      kind: "phrase",
-      tokenCount,
-    });
+      request.language,
+    );
   }
 
   return contexts;
 }
 
-export function normalizeDictionaryText(value: string): string {
-  return value.trim().replace(/\s+/gu, " ").toLocaleLowerCase("ru-RU");
+export function normalizeDictionaryText(
+  value: string,
+  language: SupportedLanguage,
+): string {
+  return value.trim().replace(/\s+/gu, " ").toLocaleLowerCase(getLocale(language));
 }
 
 function addContext(
   contexts: DictionaryMatchContext[],
   context: Omit<DictionaryMatchContext, "normalizedValue">,
+  language: SupportedLanguage,
 ) {
-  const normalizedValue = normalizeDictionaryText(context.value);
+  const normalizedValue = normalizeDictionaryText(context.value, language);
 
   if (!normalizedValue) {
     return;
@@ -87,14 +107,16 @@ function addContext(
   });
 }
 
-function getCyrillicTokensBeforeCursor(
+function getLanguageTokensBeforeCursor(
   text: string,
   cursorPosition: number,
-): CyrillicToken[] {
+  language: SupportedLanguage,
+): DictionaryToken[] {
   const beforeCursor = text.slice(0, cursorPosition);
-  const tokens: CyrillicToken[] = [];
+  const tokens: DictionaryToken[] = [];
+  const tokenPattern = tokenPatterns[language];
 
-  for (const match of beforeCursor.matchAll(cyrillicTokenPattern)) {
+  for (const match of beforeCursor.matchAll(tokenPattern)) {
     if (match.index === undefined || !match[0]) {
       continue;
     }
@@ -107,4 +129,8 @@ function getCyrillicTokensBeforeCursor(
   }
 
   return tokens;
+}
+
+function getLocale(language: SupportedLanguage): string {
+  return language === "ru" ? "ru-RU" : "en-US";
 }

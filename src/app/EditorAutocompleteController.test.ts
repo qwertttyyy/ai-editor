@@ -38,6 +38,24 @@ describe("EditorAutocompleteController", () => {
     expect(completion?.position).toEqual(position);
   });
 
+  it("builds an English suggestion request in auto language mode", async () => {
+    const provider = new CapturingProvider([makeSuggestion("test-a", "because")]);
+    const controller = new EditorAutocompleteController(
+      new AutocompleteService(provider),
+    );
+    const completion = await controller.updateCompletion("This bec", 8, position);
+
+    expect(provider.requests[0]).toMatchObject({
+      prefix: "bec",
+      language: "en",
+      replacementRange: {
+        from: 5,
+        to: 8,
+      },
+    });
+    expect(completion?.suggestions[0]?.text).toBe("because");
+  });
+
   it("cycles the selected suggestion outside React components", async () => {
     const controller = new EditorAutocompleteController(
       new AutocompleteService(
@@ -104,12 +122,12 @@ describe("EditorAutocompleteController", () => {
     });
   });
 
-  it("closes completion when editor context has no Cyrillic prefix", async () => {
+  it("closes completion when editor context has no supported prefix", async () => {
     const controller = new EditorAutocompleteController(
       new AutocompleteService(new CapturingProvider([])),
     );
 
-    await expect(controller.updateCompletion("abc", 3, position)).resolves.toBeNull();
+    await expect(controller.updateCompletion("123", 3, position)).resolves.toBeNull();
   });
 });
 

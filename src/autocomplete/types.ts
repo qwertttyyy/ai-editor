@@ -1,3 +1,5 @@
+import type { SupportedLanguage } from "../shared/language";
+
 export type SuggestionKind = "word" | "phrase" | "sentence";
 
 export interface SuggestionRange {
@@ -10,7 +12,7 @@ export interface SuggestionRequest {
   cursorPosition: number;
   prefix: string;
   replacementRange: SuggestionRange;
-  language: "ru";
+  language: SupportedLanguage;
   limit?: number;
 }
 

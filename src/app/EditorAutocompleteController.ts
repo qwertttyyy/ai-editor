@@ -3,10 +3,11 @@ import {
   type SuggestionResultStatus,
 } from "../autocomplete/AutocompleteService";
 import {
-  getCyrillicPrefixRange,
+  getAutocompletePrefixRange,
   getNextSuggestionIndex,
 } from "../autocomplete/textContext";
 import type { Suggestion, SuggestionRequest } from "../autocomplete/types";
+import type { LanguageMode } from "../shared/language";
 
 export interface CompletionPopupPosition {
   anchorTop: number;
@@ -40,11 +41,13 @@ export interface AutocompleteCommandResult {
 }
 
 interface EditorAutocompleteControllerOptions {
+  languageMode?: LanguageMode;
   limit?: number;
 }
 
 export class EditorAutocompleteController {
   private readonly service: AutocompleteService;
+  private readonly languageMode: LanguageMode;
   private readonly limit: number;
   private requestVersion = 0;
 
@@ -53,6 +56,7 @@ export class EditorAutocompleteController {
     options: EditorAutocompleteControllerOptions = {},
   ) {
     this.service = service;
+    this.languageMode = options.languageMode ?? "auto";
     this.limit = options.limit ?? 7;
   }
 
@@ -61,7 +65,11 @@ export class EditorAutocompleteController {
     cursorPosition: number,
     position: CompletionPopupPosition,
   ): Promise<ActiveCompletion | null | undefined> {
-    const prefixRange = getCyrillicPrefixRange(text, cursorPosition);
+    const prefixRange = getAutocompletePrefixRange(
+      text,
+      cursorPosition,
+      this.languageMode,
+    );
 
     if (!prefixRange) {
       return this.closeCompletion();
@@ -76,7 +84,7 @@ export class EditorAutocompleteController {
         from: prefixRange.from,
         to: prefixRange.to,
       },
-      language: "ru",
+      language: prefixRange.language,
       limit: this.limit,
     };
     const result = await this.service.getSuggestions(request);

@@ -23,6 +23,8 @@ npm run check
 - `src/autocomplete/dictionary/DictionarySuggestionProvider.test.ts` — dictionary prefix matching, phrases, dedupe, exact prefix, n-gram config.
 - `src/app/createAutocompleteService.test.ts` — production wiring и code config.
 - `src/app/EditorAutocompleteController.test.ts` — request building, selection, replacement, insertText.
+- `src/models/modelCatalog.test.ts` — model catalog, default model, language recommendations, storage skeleton.
+- `src/runtime/RuntimeManager.test.ts` — initial runtime state и not-ready skeleton.
 
 ## Что читать для задач
 
@@ -33,7 +35,7 @@ npm run check
 ## Инварианты
 
 - Чистая логика должна иметь unit tests.
-- Unit tests не требуют Ollama, сети или локальной LLM.
+- Unit tests не требуют Ollama, сети, llama.cpp binary, model files или локальной LLM.
 - Fallback на ошибку и empty behavior тестируются отдельно.
 - Если добавлена команда форматирования или меняются форматируемые файлы, запускать `npm run format:check`.
 - После feature-задачи запускать доступные проверки и явно писать, что не запускалось и почему.

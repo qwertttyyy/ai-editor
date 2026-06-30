@@ -3,8 +3,13 @@ import { describe, expect, it } from "vitest";
 import { DictionarySuggestionProvider } from "./DictionarySuggestionProvider";
 import type { DictionaryEntry } from "./dictionaryEntries";
 import type { SuggestionRequest } from "../types";
+import type { SupportedLanguage } from "../../shared/language";
 
-function makeRequest(prefix: string, limit = 7): SuggestionRequest {
+function makeRequest(
+  prefix: string,
+  limit = 7,
+  language: SupportedLanguage = "ru",
+): SuggestionRequest {
   return {
     text: prefix,
     cursorPosition: prefix.length,
@@ -13,12 +18,17 @@ function makeRequest(prefix: string, limit = 7): SuggestionRequest {
       from: 0,
       to: prefix.length,
     },
-    language: "ru",
+    language,
     limit,
   };
 }
 
-function makeWordRequest(text: string, prefix: string, limit = 7): SuggestionRequest {
+function makeWordRequest(
+  text: string,
+  prefix: string,
+  limit = 7,
+  language: SupportedLanguage = "ru",
+): SuggestionRequest {
   const cursorPosition = text.length;
 
   return {
@@ -29,7 +39,7 @@ function makeWordRequest(text: string, prefix: string, limit = 7): SuggestionReq
       from: cursorPosition - prefix.length,
       to: cursorPosition,
     },
-    language: "ru",
+    language,
     limit,
   };
 }
@@ -131,6 +141,43 @@ describe("DictionarySuggestionProvider", () => {
     expect(texts).not.toContain("привет");
     expect(texts).toContain("приветствие");
   });
+
+  it("returns English word completions for prefix bec", async () => {
+    const provider = new DictionarySuggestionProvider();
+    const result = await provider.getSuggestions(makeRequest("bec", 7, "en"));
+
+    expect(result[0]?.text).toBe("because");
+    expect(result[0]?.insertText).toBe("ause");
+  });
+
+  it("returns English phrase completions for prefix for ex", async () => {
+    const provider = new DictionarySuggestionProvider();
+    const result = await provider.getSuggestions(
+      makeWordRequest("for ex", "ex", 7, "en"),
+    );
+
+    expect(result[0]?.text).toBe("for example");
+    expect(result[0]?.insertText).toBe("ample");
+  });
+
+  it("does not return English suggestions for Russian requests", async () => {
+    const provider = new DictionarySuggestionProvider();
+    const result = await provider.getSuggestions(makeRequest("при"));
+    const texts = result.map((suggestion) => suggestion.text);
+
+    expect(texts).not.toContain("problem");
+    expect(texts).not.toContain("please");
+  });
+
+  it("does not return Russian suggestions for English requests", async () => {
+    const provider = new DictionarySuggestionProvider();
+    const result = await provider.getSuggestions(makeRequest("pro", 10, "en"));
+    const texts = result.map((suggestion) => suggestion.text);
+
+    expect(texts).toContain("problem");
+    expect(texts).not.toContain("проблема");
+    expect(texts).not.toContain("проверка");
+  });
 });
 
 function entry(id: string, text: string, frequencyRank: number): DictionaryEntry {
@@ -138,6 +185,7 @@ function entry(id: string, text: string, frequencyRank: number): DictionaryEntry
     id,
     text,
     kind: "phrase",
+    language: "ru",
     frequencyRank,
   };
 }

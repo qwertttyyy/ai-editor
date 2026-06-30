@@ -1,10 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
-import {
-  type ActiveCompletion,
-  EditorAutocompleteController,
-} from "./app/EditorAutocompleteController";
-import { createAutocompleteService } from "./app/createAutocompleteService";
+import type { ActiveCompletion } from "./app/EditorAutocompleteController";
+import { getAppStatusSnapshot } from "./app/appStatus";
+import { createEditorAutocompleteController } from "./app/createEditorAutocompleteController";
 import { SuggestionPopup } from "./editor/SuggestionPopup";
 import {
   TextEditor,
@@ -15,7 +13,7 @@ import {
 type Theme = "light" | "dark";
 
 const initialText =
-  "Начните писать русский текст. Например: привет, важная мысль, можно продолжить.";
+  "Начните писать русский или English text. Например: привет, важная мысль, for example.";
 
 export function App() {
   const editorRef = useRef<TextEditorHandle>(null);
@@ -24,10 +22,8 @@ export function App() {
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [activeCompletion, setActiveCompletion] = useState<ActiveCompletion | null>(null);
 
-  const autocompleteController = useMemo(
-    () => new EditorAutocompleteController(createAutocompleteService()),
-    [],
-  );
+  const autocompleteController = useMemo(() => createEditorAutocompleteController(), []);
+  const appStatus = useMemo(() => getAppStatusSnapshot(), []);
 
   const updateCompletion = useCallback(
     async (
@@ -126,6 +122,8 @@ export function App() {
         </div>
         <div className="top-meta">
           <span>Dictionary provider</span>
+          <span>Runtime: {appStatus.runtimeLabel}</span>
+          <span>Model: {appStatus.modelLabel}</span>
           <button
             className="theme-toggle"
             type="button"
@@ -163,9 +161,9 @@ export function App() {
       <footer className="status-bar">
         <span>Provider: {activeCompletion?.provider ?? "Dictionary"}</span>
         <span>Autocomplete: {hasSuggestions ? "available" : autocompleteLabel}</span>
+        <span>Language: {appStatus.languageLabel}</span>
         <span>{characterCount} chars</span>
         <span>{wordCount} words</span>
-        <span>RU</span>
       </footer>
     </div>
   );

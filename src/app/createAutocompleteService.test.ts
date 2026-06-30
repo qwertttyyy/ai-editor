@@ -67,6 +67,7 @@ describe("createAutocompleteService", () => {
         minPrefixLength: 2,
         matchMode: "prefixOnly",
       },
+      languageMode: "auto",
     });
     const result = await service.getSuggestions(makeRequest("при"));
 

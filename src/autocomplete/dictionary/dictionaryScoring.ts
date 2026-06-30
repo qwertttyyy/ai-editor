@@ -50,6 +50,10 @@ export function rankDictionaryEntries(
         return null;
       }
 
+      if (entry.language !== request.language) {
+        return null;
+      }
+
       const scoredEntry = scoreDictionaryEntry(entry, contexts, options);
 
       if (!scoredEntry) {
@@ -69,7 +73,7 @@ export function rankDictionaryEntries(
         left.index - right.index,
     )
     .filter(({ entry }) => {
-      const key = normalizeDictionaryText(entry.text);
+      const key = normalizeDictionaryText(entry.text, request.language);
 
       if (seen.has(key)) {
         return false;
@@ -92,7 +96,8 @@ function scoreDictionaryEntry(
   contexts: readonly DictionaryMatchContext[],
   options: DictionaryScoringOptions,
 ): ScoredDictionaryEntry | null {
-  const normalizedText = normalizeDictionaryText(entry.text);
+  const language = entry.language;
+  const normalizedText = normalizeDictionaryText(entry.text, language);
   let bestScore = 0;
   let bestContext: DictionaryMatchContext | null = null;
 
@@ -102,7 +107,8 @@ function scoreDictionaryEntry(
       context.normalizedValue,
       options.matchMode,
     );
-    const normalizedTriggers = entry.triggers?.map(normalizeDictionaryText) ?? [];
+    const normalizedTriggers =
+      entry.triggers?.map((trigger) => normalizeDictionaryText(trigger, language)) ?? [];
     const currentTriggerScore = options.enableNgrams
       ? scoreTriggerMatch(normalizedTriggers, context.normalizedValue)
       : 0;

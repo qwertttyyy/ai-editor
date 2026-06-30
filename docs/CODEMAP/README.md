@@ -14,6 +14,7 @@
 - `app.md` — composition root, controller, состояние приложения.
 - `autocomplete.md` — autocomplete service, provider contract, dictionary provider, fallback.
 - `editor.md` — CodeMirror editor, popup, keyboard commands, визуальная оболочка.
+- `models-runtime.md` — catalog моделей, model manager/storage и runtime skeleton.
 - `testing.md` — текущая структура тестов и команды проверок.
 
 ## Правило обновления

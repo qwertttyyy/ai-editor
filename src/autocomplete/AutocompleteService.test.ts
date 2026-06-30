@@ -4,12 +4,17 @@ import { AutocompleteService } from "./AutocompleteService";
 import type { SuggestionProvider } from "./SuggestionProvider";
 import {
   applySuggestion,
-  getCyrillicPrefixRange,
+  getAutocompletePrefixRange,
   getNextSuggestionIndex,
 } from "./textContext";
 import type { Suggestion, SuggestionRequest } from "./types";
+import type { SupportedLanguage } from "../shared/language";
 
-function makeRequest(prefix: string, limit = 7): SuggestionRequest {
+function makeRequest(
+  prefix: string,
+  limit = 7,
+  language: SupportedLanguage = "ru",
+): SuggestionRequest {
   return {
     text: prefix,
     cursorPosition: prefix.length,
@@ -18,7 +23,7 @@ function makeRequest(prefix: string, limit = 7): SuggestionRequest {
       from: 0,
       to: prefix.length,
     },
-    language: "ru",
+    language,
     limit,
   };
 }
@@ -139,10 +144,38 @@ class FailingProvider implements SuggestionProvider {
 
 describe("text autocomplete helpers", () => {
   it("detects the Russian prefix before the cursor", () => {
-    expect(getCyrillicPrefixRange("Это при", 7)).toEqual({
+    expect(getAutocompletePrefixRange("Это при", 7)).toEqual({
       from: 4,
       to: 7,
       prefix: "при",
+      language: "ru",
+    });
+  });
+
+  it("detects English prefix in auto language mode", () => {
+    expect(getAutocompletePrefixRange("This bec", 8)).toEqual({
+      from: 5,
+      to: 8,
+      prefix: "bec",
+      language: "en",
+    });
+  });
+
+  it("does not mix Russian and English letters inside one token", () => {
+    expect(getAutocompletePrefixRange("abc-при", 7)).toBeNull();
+  });
+
+  it("does not return a prefix when explicit language mode does not match", () => {
+    expect(getAutocompletePrefixRange("This bec", 8, "ru")).toBeNull();
+    expect(getAutocompletePrefixRange("Это при", 7, "en")).toBeNull();
+  });
+
+  it("keeps English apostrophe and hyphen inside a token", () => {
+    expect(getAutocompletePrefixRange("don't re-enter", 14, "en")).toEqual({
+      from: 6,
+      to: 14,
+      prefix: "re-enter",
+      language: "en",
     });
   });
 

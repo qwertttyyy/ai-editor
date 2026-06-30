@@ -2,7 +2,7 @@
 
 ## Что сейчас есть
 
-Editor layer содержит CodeMirror editor и popup подсказок. Он отвечает за ввод, позицию popup, keyboard commands и отображение списка. Он не знает, как получены подсказки.
+Editor layer содержит CodeMirror editor и popup подсказок. Он отвечает за ввод, позицию popup, keyboard commands и отображение списка. Он не знает, как получены подсказки и какой language/runtime выбран.
 
 ## Runtime flow
 
@@ -33,7 +33,7 @@ TextEditor
 ## Инварианты
 
 - React components не содержат provider-specific autocomplete logic.
-- UI не вызывает Ollama, HTTP API, system commands или Tauri commands для autocomplete.
+- UI не вызывает Ollama, llama.cpp, HTTP API, system commands или Tauri commands для autocomplete.
 - `TextEditor` применяет переданный range/replacement, но не решает, какую подсказку выбрать.
 - Изменения визуального стиля должны соответствовать `docs/UI_DESIGN_GUIDE.md`.
 

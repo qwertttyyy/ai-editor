@@ -1,6 +1,6 @@
 # ai-editor
 
-`ai-editor` — локальный desktop-текстовый редактор с автокомплитом слов, фраз и коротких продолжений предложений на русском языке.
+`ai-editor` — локальный desktop-текстовый редактор с автокомплитом слов, фраз и коротких продолжений на русском и английском языке.
 
 Проект задуман как лёгкий, стабильный и приятный редактор в стиле IDE: пользователь пишет текст, а приложение ненавязчиво предлагает продолжения, которые можно выбрать стрелками и принять клавишей `Tab`.
 
@@ -19,10 +19,12 @@
 - редактор на CodeMirror 6;
 - верхняя панель, центральная область редактора и нижняя status-панель;
 - светлая и тёмная тема;
-- быстрый локальный dictionary autocomplete слов и prefix-фраз без Ollama и сети;
+- быстрый локальный dictionary autocomplete русских и английских слов и prefix-фраз без Ollama и сети;
 - выбор подсказки стрелками вверх/вниз;
 - принятие подсказки через `Tab`;
 - базовая архитектура `AutocompleteService` и `SuggestionProvider`;
+- основа managed `llama.cpp` runtime architecture: model catalog, model manager, model storage и runtime manager skeleton;
+- модели пока только описаны в catalog; автоматическое скачивание, проверка и запуск будут отдельной следующей задачей;
 - тесты для чистой autocomplete-логики.
 
 Дальнейшие изменения задаются отдельными задачами с собственным scope, ограничениями и acceptance criteria.
@@ -33,7 +35,7 @@
 - React
 - TypeScript
 - CodeMirror 6
-- Ollama adapter через provider/inference слой
+- bundled llama.cpp sidecar через model/runtime/inference слой
 - Vitest
 - ESLint
 - Prettier
@@ -58,6 +60,8 @@ npm run check
 ```bash
 sudo apt install -y pkg-config libdbus-1-dev libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
 ```
+
+В целевой архитектуре пользователь не должен вручную устанавливать Ollama. Локальный LLM runtime будет управляться приложением через bundled llama.cpp sidecar, когда эта часть будет реализована.
 
 ## Документация
 

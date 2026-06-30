@@ -1,9 +1,11 @@
 import type { SuggestionKind } from "../types";
+import type { SupportedLanguage } from "../../shared/language";
 
 export interface DictionaryEntry {
   id: string;
   text: string;
   kind: SuggestionKind;
+  language: SupportedLanguage;
   frequencyRank: number;
   triggers?: readonly string[];
 }
@@ -282,6 +284,84 @@ export const dictionaryEntries: readonly DictionaryEntry[] = [
   entry("privet-kak-dela", "привет, как дела", "sentence", 130, ["привет"]),
   entry("spasibo-za-pomoshch", "спасибо за помощь", "sentence", 131, ["спасибо"]),
   entry("pozhaluysta-utochnite", "пожалуйста, уточните", "sentence", 132, ["пожалуйста"]),
+  entry("en-hello", "hello", "word", 1, [], "en"),
+  entry("en-thanks", "thanks", "word", 2, [], "en"),
+  entry("en-please", "please", "word", 3, [], "en"),
+  entry("en-because", "because", "word", 4, [], "en"),
+  entry("en-therefore", "therefore", "word", 5, [], "en"),
+  entry("en-however", "however", "word", 6, [], "en"),
+  entry("en-example", "example", "word", 7, [], "en"),
+  entry("en-possible", "possible", "word", 8, [], "en"),
+  entry("en-important", "important", "word", 9, [], "en"),
+  entry("en-current", "current", "word", 10, [], "en"),
+  entry("en-result", "result", "word", 11, [], "en"),
+  entry("en-problem", "problem", "word", 12, [], "en"),
+  entry("en-solution", "solution", "word", 13, [], "en"),
+  entry("en-next", "next", "word", 14, [], "en"),
+  entry("en-step", "step", "word", 15, [], "en"),
+  entry("en-text", "text", "word", 16, [], "en"),
+  entry("en-editor", "editor", "word", 17, [], "en"),
+  entry("en-suggestion", "suggestion", "word", 18, [], "en"),
+  entry("en-local", "local", "word", 19, [], "en"),
+  entry("en-fast", "fast", "word", 20, [], "en"),
+  entry("en-simple", "simple", "word", 21, [], "en"),
+  entry("en-clear", "clear", "word", 22, [], "en"),
+  entry("en-useful", "useful", "word", 23, [], "en"),
+  entry("en-relevant", "relevant", "word", 24, [], "en"),
+  entry("en-check", "check", "word", 25, [], "en"),
+  entry("en-review", "review", "word", 26, [], "en"),
+  entry("en-test", "test", "word", 27, [], "en"),
+  entry("en-build", "build", "word", 28, [], "en"),
+  entry("en-change", "change", "word", 29, [], "en"),
+  entry("en-update", "update", "word", 30, [], "en"),
+  entry("en-improve", "improve", "word", 31, [], "en"),
+  entry("en-create", "create", "word", 32, [], "en"),
+  entry("en-use", "use", "word", 33, [], "en"),
+  entry("en-need", "need", "word", 34, [], "en"),
+  entry("en-should", "should", "word", 35, [], "en"),
+  entry("en-could", "could", "word", 36, [], "en"),
+  entry("en-might", "might", "word", 37, [], "en"),
+  entry("en-first", "first", "word", 38, [], "en"),
+  entry("en-second", "second", "word", 39, [], "en"),
+  entry("en-final", "final", "word", 40, [], "en"),
+  entry("en-default", "default", "word", 41, [], "en"),
+  entry("en-runtime", "runtime", "word", 42, [], "en"),
+  entry("en-model", "model", "word", 43, [], "en"),
+  entry("en-language", "language", "word", 44, [], "en"),
+  entry("en-context", "context", "word", 45, [], "en"),
+  entry("en-prefix", "prefix", "word", 46, [], "en"),
+  entry("en-provider", "provider", "word", 47, [], "en"),
+  entry("en-service", "service", "word", 48, [], "en"),
+  entry("en-storage", "storage", "word", 49, [], "en"),
+  entry("en-status", "status", "word", 50, [], "en"),
+  entry("en-error", "error", "word", 51, [], "en"),
+  entry("en-state", "state", "word", 52, [], "en"),
+  entry("en-source", "source", "word", 53, [], "en"),
+  entry("en-network", "network", "word", 54, [], "en"),
+  entry("en-offline", "offline", "word", 55, [], "en"),
+  entry("en-for-example", "for example", "phrase", 56, ["for ex"], "en"),
+  entry("en-because-of", "because of", "phrase", 57, ["because"], "en"),
+  entry("en-in-this-case", "in this case", "phrase", 58, ["in this"], "en"),
+  entry("en-in-terms-of", "in terms of", "phrase", 59, ["in terms"], "en"),
+  entry("en-as-a-result", "as a result", "phrase", 60, ["as a"], "en"),
+  entry(
+    "en-on-the-other-hand",
+    "on the other hand",
+    "phrase",
+    61,
+    ["on the other"],
+    "en",
+  ),
+  entry("en-the-main-problem", "the main problem", "phrase", 62, ["the main"], "en"),
+  entry("en-the-next-step", "the next step", "phrase", 63, ["the next"], "en"),
+  entry("en-it-is-important", "it is important", "phrase", 64, ["it is"], "en"),
+  entry("en-we-can-use", "we can use", "phrase", 65, ["we can"], "en"),
+  entry("en-we-can-improve", "we can improve", "phrase", 66, ["we can"], "en"),
+  entry("en-it-makes-sense", "it makes sense", "phrase", 67, ["it makes"], "en"),
+  entry("en-local-runtime", "local runtime", "phrase", 68, ["local run"], "en"),
+  entry("en-default-model", "default model", "phrase", 69, ["default mod"], "en"),
+  entry("en-current-result", "current result", "phrase", 70, ["current res"], "en"),
+  entry("en-clear-context", "clear context", "phrase", 71, ["clear con"], "en"),
 ];
 
 function entry(
@@ -290,12 +370,14 @@ function entry(
   kind: SuggestionKind,
   frequencyRank: number,
   triggers: readonly string[] = [],
+  language: SupportedLanguage = "ru",
 ): DictionaryEntry {
   if (triggers.length === 0) {
     return {
       id,
       text,
       kind,
+      language,
       frequencyRank,
     };
   }
@@ -304,6 +386,7 @@ function entry(
     id,
     text,
     kind,
+    language,
     frequencyRank,
     triggers,
   };

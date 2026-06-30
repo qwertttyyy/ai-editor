@@ -1,6 +1,6 @@
 # Архитектура
 
-Главный принцип: UI показывает состояние редактора и подсказки, но не знает, как именно подсказки получены.
+Главный принцип: UI показывает состояние редактора, подсказки и краткий runtime/model статус, но не знает, как именно подсказки получены и как запускается локальный inference.
 
 ## Слои
 
@@ -10,6 +10,7 @@ UI layer
   -> autocomplete layer
   -> provider layer
   -> inference adapter layer
+  -> model/runtime management layer
   -> Tauri/native layer
 ```
 
@@ -18,6 +19,7 @@ UI layer
 - `autocomplete layer` — `AutocompleteService`, ranking, dedupe, limit, fallback.
 - `provider layer` — `SuggestionProvider` и конкретные providers: dictionary, history, LLM-based provider.
 - `inference adapter layer` — adapters для локального inference backend, преобразование запросов и ошибок.
+- `model/runtime management layer` — catalog моделей, storage, model manager, runtime manager и adapter bundled llama.cpp.
 - `Tauri/native layer` — минимальные native commands и доступ к возможностям ОС, если они нужны задаче.
 - `storage/settings layer` — будущие настройки, пользовательские словари, история и persisted state.
 
@@ -33,6 +35,8 @@ Editor UI -> AutocompleteService -> SuggestionProvider -> provider implementatio
 
 ```text
 App/UI -> Ollama
+App/UI -> llama.cpp process
+App/UI -> model filesystem paths
 App/UI -> HTTP API
 App/UI -> system commands
 Editor -> конкретная LLM
@@ -48,7 +52,9 @@ UI может вызывать только сервисы или adapter facade
 
 `SuggestionProvider` возвращает подсказки в едином формате. Конкретный источник подсказок скрыт за provider contract.
 
-`DictionarySuggestionProvider` — быстрый локальный provider для русских слов и фразовых prefix-completion. Он работает на небольшом встроенном curated dictionary, не обращается к сети и не зависит от Ollama. Контекстные n-граммные triggers выключены по умолчанию через code config, чтобы словарь не конкурировал с будущими LLM-продолжениями.
+`DictionarySuggestionProvider` — быстрый локальный provider для русских и английских слов и фразовых prefix-completion. Он работает на небольшом встроенном curated dictionary, не обращается к сети и не зависит от model/runtime слоёв. Контекстные n-граммные triggers выключены по умолчанию через code config, чтобы словарь не конкурировал с будущими LLM-продолжениями.
+
+`SuggestionRequest.language` использует `ru` или `en`. Режим `auto` определяется в application/controller слое по текущему prefix: кириллица даёт `ru`, латиница даёт `en`, смешанные токены не предлагаются.
 
 Ranking может быть простой функцией: убрать дубликаты, отфильтровать неподходящие подсказки и сохранить стабильный порядок.
 
@@ -57,6 +63,22 @@ Ranking может быть простой функцией: убрать дуб
 `InferenceAdapter` и prompt-building относятся к inference/provider слоям. Они не должны попадать в UI-компоненты.
 
 Prompt builder готовит prompt из ограниченного текстового контекста и не выполняет network calls. `InferenceAdapter` выполняет запросы к backend и преобразует ошибки в понятные состояния.
+
+Целевой production runtime — bundled `llama.cpp` sidecar. Ollama-заготовки, если остаются в коде, считаются optional/dev adapter-ами и не являются обязательной зависимостью пользователя.
+
+LLM autocomplete должен подключаться отдельным асинхронным `SuggestionProvider`, а не смешиваться с dictionary provider. Ошибки или задержки LLM не должны блокировать ввод и быстрые dictionary-подсказки.
+
+## Models и runtime
+
+`ModelCatalog` хранит catalog-only описания выбранных моделей: Qwen3 и Ruadapt Qwen2.5 профили для `ru/en`. Пока не добавлены проверенные GGUF artifacts, URL и checksums не указываются.
+
+`ModelManager` отвечает за список моделей, default model и будущий статус `catalog-only / downloading / installed / failed`.
+
+`ModelStorage` отвечает за будущие пути хранения GGUF-файлов и проверку наличия модели. Unit-тесты не должны требовать реальных model files.
+
+`RuntimeManager` отвечает за выбранный runtime и состояние процесса `stopped / starting / running / failed`.
+
+`LlamaCppRuntimeAdapter` отвечает за будущий запуск bundled `llama-server` sidecar, health-check локального runtime и completion/infill. На текущем этапе adapter не запускает бинарник и возвращает `not-ready`, потому что sidecar ещё не упакован.
 
 ## Fallback
 
@@ -78,6 +100,8 @@ src/
   editor/
   autocomplete/
   inference/
+  models/
+  runtime/
   settings/
   shared/
 

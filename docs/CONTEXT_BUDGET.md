@@ -19,16 +19,17 @@
 
 ## Выбор документации
 
-| Тип задачи         | Читать                                                             | По необходимости                                   |
-| ------------------ | ------------------------------------------------------------------ | -------------------------------------------------- |
-| UI task            | `AGENTS.md`, `docs/CODEMAP/editor.md`, `docs/UI_DESIGN_GUIDE.md`   | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
-| Autocomplete task  | `AGENTS.md`, `docs/CODEMAP/autocomplete.md`, task spec             | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
-| App wiring task    | `AGENTS.md`, `docs/CODEMAP/app.md`, task spec                      | `docs/ARCHITECTURE.md`                             |
-| Inference task     | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec                     | Context7 по внешнему API                           |
-| Tauri/Rust task    | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec                     | Context7 по Tauri                                  |
-| Testing task       | `AGENTS.md`, `docs/CODEMAP/testing.md`, `docs/TESTING_STRATEGY.md` | Документ по конкретной feature                     |
-| Documentation task | `AGENTS.md`, редактируемый документ                                | Связанные документы                                |
-| Review task        | `AGENTS.md`, текущий diff, task scope                              | Документ по изменённой области                     |
+| Тип задачи         | Читать                                                                           | По необходимости                                   |
+| ------------------ | -------------------------------------------------------------------------------- | -------------------------------------------------- |
+| UI task            | `AGENTS.md`, `docs/CODEMAP/editor.md`, `docs/UI_DESIGN_GUIDE.md`                 | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
+| Autocomplete task  | `AGENTS.md`, `docs/CODEMAP/autocomplete.md`, task spec                           | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
+| App wiring task    | `AGENTS.md`, `docs/CODEMAP/app.md`, task spec                                    | `docs/ARCHITECTURE.md`                             |
+| Inference task     | `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP/models-runtime.md`, task spec | Context7 по внешнему API                           |
+| Model/runtime task | `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/CODEMAP/models-runtime.md`, task spec | `docs/SECURITY_AND_PERMISSIONS.md`                 |
+| Tauri/Rust task    | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec                                   | Context7 по Tauri                                  |
+| Testing task       | `AGENTS.md`, `docs/CODEMAP/testing.md`, `docs/TESTING_STRATEGY.md`               | Документ по конкретной feature                     |
+| Documentation task | `AGENTS.md`, редактируемый документ                                              | Связанные документы                                |
+| Review task        | `AGENTS.md`, текущий diff, task scope                                            | Документ по изменённой области                     |
 
 ## CODEMAP
 

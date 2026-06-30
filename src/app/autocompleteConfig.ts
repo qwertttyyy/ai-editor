@@ -1,4 +1,7 @@
+import type { LanguageMode } from "../shared/language";
+
 export interface AutocompleteConfig {
+  languageMode: LanguageMode;
   dictionary: {
     enabled: boolean;
     includeWords: boolean;
@@ -12,6 +15,7 @@ export interface AutocompleteConfig {
 }
 
 export const autocompleteConfig: AutocompleteConfig = {
+  languageMode: "auto",
   dictionary: {
     enabled: true,
     includeWords: true,
