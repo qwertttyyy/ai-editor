@@ -8,6 +8,7 @@ import type {
   RuntimeHealthStatus,
   RuntimeStartRequest,
 } from "./runtimeTypes";
+import { PlannedLlamaCppRuntimeHost, type RuntimeHost } from "./RuntimeHost";
 import {
   createInitialRuntimeProcessState,
   type RuntimeProcessState,
@@ -16,12 +17,16 @@ import {
 export class LlamaCppRuntimeAdapter implements InferenceAdapter {
   readonly name = "llama.cpp";
 
+  constructor(
+    private readonly runtimeHost: RuntimeHost = new PlannedLlamaCppRuntimeHost(),
+  ) {}
+
   getBinaryStatus(): RuntimeBinaryStatus {
-    return {
-      runtime: "llama-cpp",
-      isBundled: false,
-      isInstalled: false,
-    };
+    return this.runtimeHost.getBinaryStatus();
+  }
+
+  async checkBinaryStatus(): Promise<RuntimeBinaryStatus> {
+    return this.runtimeHost.checkBinaryStatus();
   }
 
   async start(request: RuntimeStartRequest): Promise<RuntimeProcessState> {
@@ -34,11 +39,7 @@ export class LlamaCppRuntimeAdapter implements InferenceAdapter {
   }
 
   async checkHealth(): Promise<RuntimeHealthStatus> {
-    return {
-      runtime: "llama-cpp",
-      readiness: "not-ready",
-      message: "Bundled llama.cpp sidecar is planned but not installed yet.",
-    };
+    return this.runtimeHost.checkHealth();
   }
 
   async complete(request: InferenceRequest): Promise<InferenceResponse> {

@@ -1,7 +1,5 @@
 import type { ModelRuntimeKind } from "../models/modelTypes";
-import type { RuntimeReadiness } from "./runtimeTypes";
-
-export type RuntimeProcessStatus = "stopped" | "starting" | "running" | "failed";
+import type { RuntimeProcessStatus, RuntimeReadiness } from "./runtimeTypes";
 
 export interface RuntimeProcessState {
   runtime: ModelRuntimeKind;

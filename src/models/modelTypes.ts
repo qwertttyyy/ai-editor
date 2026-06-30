@@ -13,10 +13,14 @@ export type ManagedModelStatus = ModelAvailabilityStatus | "downloading" | "fail
 
 export interface LocalModelArtifact {
   format: "gguf";
-  url?: string;
-  fileName?: string;
-  sha256?: string;
-  sizeBytes?: number;
+  source: "hugging-face";
+  repository: string;
+  sourcePageUrl: string;
+  downloadUrl: string;
+  fileName: string;
+  sha256: string;
+  sizeBytes: number;
+  verifiedAt: string;
 }
 
 export interface LocalModelDefinition {

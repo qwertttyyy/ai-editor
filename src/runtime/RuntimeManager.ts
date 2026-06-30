@@ -3,7 +3,11 @@ import {
   createInitialRuntimeProcessState,
   type RuntimeProcessState,
 } from "./RuntimeProcessState";
-import type { RuntimeBinaryStatus, RuntimeStartRequest } from "./runtimeTypes";
+import type {
+  RuntimeBinaryStatus,
+  RuntimeHealthStatus,
+  RuntimeStartRequest,
+} from "./runtimeTypes";
 
 export class RuntimeManager {
   private state: RuntimeProcessState;
@@ -20,21 +24,33 @@ export class RuntimeManager {
     return this.adapter.getBinaryStatus();
   }
 
+  async checkBinaryStatus(): Promise<RuntimeBinaryStatus> {
+    return this.adapter.checkBinaryStatus();
+  }
+
   canStart(modelPath: string | null | undefined): boolean {
     const binaryStatus = this.getBinaryStatus();
 
     return binaryStatus.isInstalled && Boolean(modelPath);
   }
 
+  async checkHealth(): Promise<RuntimeHealthStatus> {
+    return this.adapter.checkHealth();
+  }
+
   async start(request: RuntimeStartRequest): Promise<RuntimeProcessState> {
     if (!this.canStart(request.modelPath)) {
+      const binaryStatus = this.getBinaryStatus();
+      const missingSidecar = !binaryStatus.isInstalled;
       this.state = {
         runtime: "llama-cpp",
         status: "failed",
         readiness: "not-ready",
         modelId: request.modelId,
         modelPath: request.modelPath,
-        errorMessage: "llama.cpp sidecar is not bundled yet.",
+        errorMessage: missingSidecar
+          ? "llama.cpp sidecar is not bundled yet."
+          : "Model file is not installed yet.",
       };
       return this.state;
     }

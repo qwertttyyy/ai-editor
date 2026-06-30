@@ -10,7 +10,19 @@ export const localModelCatalog: readonly LocalModelDefinition[] = [
     tier: "very-fast-cpu",
     recommendedHardware: "cpu-low",
     runtime: "llama-cpp",
-    availability: "catalog-only",
+    availability: "downloadable",
+    artifact: {
+      format: "gguf",
+      source: "hugging-face",
+      repository: "Qwen/Qwen3-0.6B-GGUF",
+      sourcePageUrl: "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF",
+      downloadUrl:
+        "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf",
+      fileName: "Qwen3-0.6B-Q8_0.gguf",
+      sha256: "9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031",
+      sizeBytes: 639446688,
+      verifiedAt: "2026-06-30",
+    },
     notes: "Очень быстрый CPU-профиль для слабых ноутбуков.",
   },
   {

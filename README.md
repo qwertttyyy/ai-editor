@@ -23,8 +23,10 @@
 - выбор подсказки стрелками вверх/вниз;
 - принятие подсказки через `Tab`;
 - базовая архитектура `AutocompleteService` и `SuggestionProvider`;
-- основа managed `llama.cpp` runtime architecture: model catalog, model manager, model storage и runtime manager skeleton;
-- модели пока только описаны в catalog; автоматическое скачивание, проверка и запуск будут отдельной следующей задачей;
+- основа managed `llama.cpp` runtime architecture: model catalog, model manager, model storage, hardware profile и runtime manager skeleton;
+- проверенная metadata для первого GGUF artifact `Qwen3-0.6B-Q8_0.gguf`;
+- Tauri commands для app-data model storage, CPU-safe hardware fallback и localhost health-check;
+- модели пока не скачиваются автоматически, а `llama.cpp` sidecar binary ещё не упакован;
 - тесты для чистой autocomplete-логики.
 
 Дальнейшие изменения задаются отдельными задачами с собственным scope, ограничениями и acceptance criteria.

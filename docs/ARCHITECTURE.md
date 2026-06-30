@@ -12,6 +12,7 @@ UI layer
   -> inference adapter layer
   -> model/runtime management layer
   -> Tauri/native layer
+  -> hardware profile layer
 ```
 
 - `UI layer` — React-компоненты, CodeMirror, layout, тема, popup, пользовательские события.
@@ -21,6 +22,7 @@ UI layer
 - `inference adapter layer` — adapters для локального inference backend, преобразование запросов и ошибок.
 - `model/runtime management layer` — catalog моделей, storage, model manager, runtime manager и adapter bundled llama.cpp.
 - `Tauri/native layer` — минимальные native commands и доступ к возможностям ОС, если они нужны задаче.
+- `hardware profile layer` — типы CPU/GPU/VRAM/backend, безопасный CPU fallback и будущие platform-specific adapters.
 - `storage/settings layer` — будущие настройки, пользовательские словари, история и persisted state.
 
 ## Правила зависимостей
@@ -70,15 +72,19 @@ LLM autocomplete должен подключаться отдельным аси
 
 ## Models и runtime
 
-`ModelCatalog` хранит catalog-only описания выбранных моделей: Qwen3 и Ruadapt Qwen2.5 профили для `ru/en`. Пока не добавлены проверенные GGUF artifacts, URL и checksums не указываются.
+`ModelCatalog` хранит описания выбранных моделей: Qwen3 и Ruadapt Qwen2.5 профили для `ru/en`. Проверенные GGUF artifacts добавляются только с source URL, filename, size и checksum. Остальные модели остаются `catalog-only`.
 
 `ModelManager` отвечает за список моделей, default model и будущий статус `catalog-only / downloading / installed / failed`.
 
-`ModelStorage` отвечает за будущие пути хранения GGUF-файлов и проверку наличия модели. Unit-тесты не должны требовать реальных model files.
+`ModelStorage` отвечает за безопасное построение путей GGUF-файлов внутри app-data models directory и проверку статуса модели. Tauri/native layer возвращает реальный app-data path, но UI не получает model filesystem paths напрямую. Unit-тесты не должны требовать реальных model files.
+
+`HardwareProfile` описывает CPU/GPU/VRAM/backend и связывается с `ModelCatalog.recommendedHardware` для рекомендаций. Пока глубокий detection не реализован: safe fallback — CPU.
 
 `RuntimeManager` отвечает за выбранный runtime и состояние процесса `stopped / starting / running / failed`.
 
-`LlamaCppRuntimeAdapter` отвечает за будущий запуск bundled `llama-server` sidecar, health-check локального runtime и completion/infill. На текущем этапе adapter не запускает бинарник и возвращает `not-ready`, потому что sidecar ещё не упакован.
+`LlamaCppRuntimeAdapter` отвечает за будущий запуск bundled `llama-server` sidecar, health-check локального runtime и completion/infill. На текущем этапе adapter умеет возвращать planned/not-ready status и делегировать localhost health-check через runtime host, но не выполняет completion.
+
+Sidecar packaging strategy хранится отдельно от UI: до добавления проверенного бинарника `src-tauri/binaries/` содержит только инструкцию, а `tauri.conf.json` не ссылается на несуществующий `externalBin`.
 
 ## Fallback
 
@@ -101,6 +107,7 @@ src/
   autocomplete/
   inference/
   models/
+  hardware/
   runtime/
   settings/
   shared/

@@ -17,7 +17,7 @@
 - `ModelManager` связывает catalog, storage и статус модели;
 - `RuntimeManager` отвечает за состояние runtime-процесса;
 - `LlamaCppRuntimeAdapter` изолирует будущий запуск sidecar, health-check и completion/infill;
-- `HardwareProfile` добавится позже для выбора профиля под CPU/GPU/RAM.
+- `HardwareProfile` хранит CPU/GPU/VRAM/backend skeleton и безопасный CPU fallback для выбора профиля под CPU/GPU/RAM.
 
 Dictionary autocomplete остаётся быстрым первым источником подсказок и не зависит от model/runtime слоёв. LLM autocomplete будет отдельным асинхронным источником через `SuggestionProvider` и inference adapter.
 
@@ -26,6 +26,6 @@ Ollama, если будет использоваться, остаётся optio
 ## Последствия
 
 - Пользователь не обязан вручную устанавливать Ollama.
-- Модели описываются как GGUF catalog entries, но автоматическое скачивание и запуск ещё не реализованы.
+- Модели описываются как GGUF catalog entries; verified artifact metadata можно добавлять только после проверки источников, но автоматическое скачивание и запуск ещё не реализованы.
 - Реальные model download URLs, имена файлов, размеры и checksums добавляются только после проверки источников.
 - UI не запускает runtime, не знает model path и не обращается напрямую к HTTP/system APIs.
