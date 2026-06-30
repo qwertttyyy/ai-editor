@@ -1,0 +1,41 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Артефакты сборки
+dist/
+build/
+coverage/
+.vite/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+src-tauri/.tauri/
+
+# Rust
+target/
+Cargo.lock.orig
+*.rs.bk
+
+# Переменные окружения
+.env
+.env.*
+!.env.example
+
+# Логи
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ОС
+.DS_Store
+Thumbs.db
