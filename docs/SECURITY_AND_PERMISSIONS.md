@@ -11,7 +11,7 @@
 ## Network
 
 - Не делать внешние network calls, если задача явно этого не требует.
-- Для MVP допустим только локальный `localhost` endpoint Ollama, когда задача явно про Ollama.
+- Для задач MVP 2+ про Ollama допустим только локальный `localhost` endpoint.
 - Не добавлять telemetry и аналитику.
 
 ## Файловая система

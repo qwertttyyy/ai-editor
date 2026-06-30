@@ -5,14 +5,13 @@
 ## Границы слоёв
 
 ```text
-App/UI -> Editor -> AutocompleteService -> SuggestionProvider -> InferenceAdapter
+Editor UI -> AutocompleteService -> SuggestionProvider -> provider implementation
 ```
 
-- `App/UI` — React-компоненты, layout, тема, пользовательские события.
-- `Editor` — CodeMirror, состояние текста, popup подсказок.
+- `Editor UI` — React-компоненты, CodeMirror, состояние текста, popup подсказок, layout, тема, пользовательские события.
 - `AutocompleteService` — orchestration подсказок, ranking и fallback.
 - `SuggestionProvider` — контракт источника подсказок.
-- `InferenceAdapter` — низкоуровневый доступ к локальному inference backend.
+- `provider implementation` — конкретный источник подсказок: mock, dictionary или будущий LLM provider.
 
 Запрещённые зависимости:
 
@@ -33,7 +32,7 @@ Editor -> конкретная LLM
 
 ## Inference и prompt
 
-`InferenceAdapter` и `PromptBuilder` нужны только для LLM provider. Они не должны попадать в UI-компоненты.
+`InferenceAdapter` и `PromptBuilder` нужны только для будущего LLM provider. Они не должны попадать в UI-компоненты и не являются частью цепочки MVP 1.
 
 `PromptBuilder` готовит prompt из ограниченного текстового контекста и не выполняет network calls. `InferenceAdapter` выполняет запросы к backend и преобразует ошибки в понятные состояния.
 

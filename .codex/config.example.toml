@@ -1,18 +1,10 @@
-# Пример проектной конфигурации Codex для ai-editor.
-# Активный проектный конфиг лежит в .codex/config.toml.
-# Секреты, токены, API-ключи и приватные параметры нельзя коммитить.
+# Project-local Codex configuration for ai-editor.
+# Do not add secrets, tokens, API keys, or private values to this file.
 
-# Context7 MCP включается только для этого репозитория.
-# Использовать только когда нужна актуальная документация внешней библиотеки.
 [mcp_servers.context7]
 command = "npx"
 args = ["-y", "@upstash/context7-mcp"]
 
-# Playwright MCP включается только для этого репозитория.
-# Использовать только для UI/e2e-сценариев, скриншотов и проверки поведения интерфейса.
 [mcp_servers.playwright]
 command = "npx"
 args = ["@playwright/mcp@latest"]
-
-# MCP нельзя использовать "на всякий случай".
-# Если задачу можно решить по локальному коду и локальным docs, MCP не использовать.

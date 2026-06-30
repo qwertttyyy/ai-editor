@@ -1,5 +1,5 @@
 name = "documenter"
-description = "Обновляет документацию ai-editor и фиксирует архитектурные решения."
+description = "Обновляет docs и ADR без чрезмерного расширения документации."
 
 developer_instructions = """
 Ты documentation agent проекта ai-editor.
