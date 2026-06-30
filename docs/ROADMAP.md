@@ -1,29 +1,16 @@
 # Roadmap
 
-Roadmap задаёт направление, но не расширяет scope текущей задачи.
+Roadmap — необязательный высокоуровневый список направлений. Он не управляет реализацией и не расширяет scope текущей задачи.
 
-## MVP 1
+Конкретная работа задаётся task spec или промтом пользователя.
 
-Минимальный локальный редактор с mock autocomplete. Детальный scope зафиксирован в `docs/MVP_1_SCOPE.md`.
+## Возможные направления
 
-## MVP 2
-
-Реальные локальные источники подсказок и базовые настройки:
-
-- Ollama health-check;
-- `OllamaSuggestionProvider`;
-- выбор модели и endpoint;
-- dictionary/history provider;
-- улучшенный ranking;
-- простое открытие и сохранение `.txt`.
-
-## Возможный MVP 3
-
-Расширение локального inference и пользовательских возможностей:
-
-- model downloader;
-- llama.cpp adapter;
-- hardware detection и рекомендации GPU/CPU;
-- installer;
-- персональный словарь;
-- embeddings/history search.
+- базовый редактор;
+- autocomplete;
+- Ollama integration;
+- file operations;
+- model management;
+- local inference improvements;
+- пользовательские настройки;
+- packaging и release flow.

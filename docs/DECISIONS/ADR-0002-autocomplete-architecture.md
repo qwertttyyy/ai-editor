@@ -22,5 +22,5 @@ Fallback обязателен: ошибка или пустой ответ provi
 
 - UI не знает о модели, endpoint и inference backend.
 - Prompt-building и HTTP-вызовы не попадают в React-компоненты.
-- `MockSuggestionProvider` нужен с начала MVP 1.
+- `MockSuggestionProvider` нужен для локальной разработки и fallback-сценариев.
 - Fallback-логика тестируется отдельно.

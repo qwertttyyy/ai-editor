@@ -10,12 +10,12 @@
 
 ## Решение
 
-Использовать Tauri 2, React, TypeScript, CodeMirror 6, Vitest, ESLint, Prettier и npm. Ollama подключать через adapter/provider, начиная с MVP 2.
+Использовать Tauri 2, React, TypeScript, CodeMirror 6, Vitest, ESLint, Prettier и npm. Ollama и другие inference backend подключать только через adapter/provider, когда это входит в task scope.
 
 ## Последствия
 
 - Rust-часть остаётся минимальной.
 - CodeMirror нужно визуально адаптировать под текстовый редактор, а не IDE.
 - UI не обращается к Ollama напрямую.
-- Unit-тесты MVP 1 не требуют Ollama.
+- Unit-тесты чистой логики не требуют Ollama.
 - Inference остаётся заменяемым.

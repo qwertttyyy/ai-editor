@@ -2,16 +2,32 @@
 
 Главный принцип: UI показывает состояние редактора и подсказки, но не знает, как именно подсказки получены.
 
-## Границы слоёв
+## Слои
+
+```text
+UI layer
+  -> application/services layer
+  -> autocomplete layer
+  -> provider layer
+  -> inference adapter layer
+  -> Tauri/native layer
+```
+
+- `UI layer` — React-компоненты, CodeMirror, layout, тема, popup, пользовательские события.
+- `application/services layer` — orchestration пользовательских сценариев, состояние приложения, связь UI с доменной логикой.
+- `autocomplete layer` — `AutocompleteService`, ranking, dedupe, limit, fallback.
+- `provider layer` — `SuggestionProvider` и конкретные providers: mock, dictionary, history, LLM-based provider.
+- `inference adapter layer` — adapters для локального inference backend, преобразование запросов и ошибок.
+- `Tauri/native layer` — минимальные native commands и доступ к возможностям ОС, если они нужны задаче.
+- `storage/settings layer` — будущие настройки, пользовательские словари, история и persisted state.
+
+## Правила зависимостей
+
+Разрешённая цепочка autocomplete:
 
 ```text
 Editor UI -> AutocompleteService -> SuggestionProvider -> provider implementation
 ```
-
-- `Editor UI` — React-компоненты, CodeMirror, состояние текста, popup подсказок, layout, тема, пользовательские события.
-- `AutocompleteService` — orchestration подсказок, ranking и fallback.
-- `SuggestionProvider` — контракт источника подсказок.
-- `provider implementation` — конкретный источник подсказок: mock, dictionary или будущий LLM provider.
 
 Запрещённые зависимости:
 
@@ -20,43 +36,37 @@ App/UI -> Ollama
 App/UI -> HTTP API
 App/UI -> system commands
 Editor -> конкретная LLM
+React component -> prompt-building
+React component -> inference adapter
 ```
+
+UI может вызывать только сервисы или adapter facade, если это явно предусмотрено задачей. Inference и HTTP-вызовы не должны находиться в React-компонентах.
 
 ## Autocomplete
 
 `AutocompleteService` принимает контекст редактора, вызывает активный `SuggestionProvider`, нормализует результат, ограничивает количество подсказок и применяет fallback.
 
-`SuggestionProvider` возвращает подсказки в едином формате. Для MVP 1 достаточно `MockSuggestionProvider` и, при необходимости, простого `DictionarySuggestionProvider`. `OllamaSuggestionProvider` относится к MVP 2.
+`SuggestionProvider` возвращает подсказки в едином формате. Конкретный источник подсказок скрыт за provider contract.
 
-`RankingService` может быть простой функцией: убрать дубликаты, отфильтровать неподходящие подсказки и сохранить стабильный порядок.
+Ranking может быть простой функцией: убрать дубликаты, отфильтровать неподходящие подсказки и сохранить стабильный порядок.
 
 ## Inference и prompt
 
-`InferenceAdapter` и `PromptBuilder` нужны только для будущего LLM provider. Они не должны попадать в UI-компоненты и не являются частью цепочки MVP 1.
+`InferenceAdapter` и prompt-building относятся к inference/provider слоям. Они не должны попадать в UI-компоненты.
 
-`PromptBuilder` готовит prompt из ограниченного текстового контекста и не выполняет network calls. `InferenceAdapter` выполняет запросы к backend и преобразует ошибки в понятные состояния.
+Prompt builder готовит prompt из ограниченного текстового контекста и не выполняет network calls. `InferenceAdapter` выполняет запросы к backend и преобразует ошибки в понятные состояния.
 
 ## Fallback
 
-Fallback обязателен. В MVP 1 конечным fallback является `MockSuggestionProvider`; если другой provider ещё не подключён, сервис всё равно должен корректно обрабатывать error/empty.
+Fallback обязателен для autocomplete-задач. Ошибка provider не должна ломать ввод текста.
 
-Возможная схема MVP 1 при наличии dictionary provider:
+Возможная схема:
 
 ```text
-DictionarySuggestionProvider
+PrimarySuggestionProvider
   -> если error/empty
-MockSuggestionProvider
+FallbackSuggestionProvider
 ```
-
-Для MVP 2 схема может расшириться:
-
-```text
-OllamaSuggestionProvider
-  -> DictionarySuggestionProvider
-  -> MockSuggestionProvider
-```
-
-Ошибка provider не должна ломать ввод текста.
 
 ## Структура директорий
 
@@ -64,16 +74,13 @@ OllamaSuggestionProvider
 src/
   app/
   editor/
-    completion/
   autocomplete/
   inference/
   settings/
-  models/
   shared/
 
 src-tauri/
   src/
-    commands/
 ```
 
 `src/` содержит frontend и бизнес-логику. `src-tauri/` содержит минимальную нативную часть. Rust-код не должен разрастаться без необходимости.
