@@ -10,23 +10,31 @@
 
 1. Прочитать `AGENTS.md`.
 2. Определить тип задачи.
-3. Выбрать релевантные документы.
-4. Не читать остальные документы без причины.
-5. Решить, нужен ли MCP.
-6. Решить, нужны ли subagents.
-7. Кратко зафиксировать выбранный контекст перед работой.
+3. Прочитать `docs/CODEMAP/README.md` и выбрать нужную карту области.
+4. Выбрать остальные релевантные документы.
+5. Не читать остальные документы без причины.
+6. Решить, нужен ли MCP.
+7. Решить, нужны ли subagents.
+8. Кратко зафиксировать выбранный контекст перед работой.
 
 ## Выбор документации
 
-| Тип задачи | Читать | По необходимости |
-| --- | --- | --- |
-| UI task | `AGENTS.md`, `docs/UI_DESIGN_GUIDE.md`, `docs/ARCHITECTURE.md` | `docs/TESTING_STRATEGY.md` |
-| Autocomplete task | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec | `docs/TESTING_STRATEGY.md` |
-| Inference task | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec | Context7 по внешнему API |
-| Tauri/Rust task | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec | Context7 по Tauri |
-| Testing task | `AGENTS.md`, `docs/TESTING_STRATEGY.md` | Документ по конкретной feature |
-| Documentation task | `AGENTS.md`, редактируемый документ | Связанные документы |
-| Review task | `AGENTS.md`, текущий diff, task scope | Документ по изменённой области |
+| Тип задачи         | Читать                                                             | По необходимости                                   |
+| ------------------ | ------------------------------------------------------------------ | -------------------------------------------------- |
+| UI task            | `AGENTS.md`, `docs/CODEMAP/editor.md`, `docs/UI_DESIGN_GUIDE.md`   | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
+| Autocomplete task  | `AGENTS.md`, `docs/CODEMAP/autocomplete.md`, task spec             | `docs/ARCHITECTURE.md`, `docs/TESTING_STRATEGY.md` |
+| App wiring task    | `AGENTS.md`, `docs/CODEMAP/app.md`, task spec                      | `docs/ARCHITECTURE.md`                             |
+| Inference task     | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec                     | Context7 по внешнему API                           |
+| Tauri/Rust task    | `AGENTS.md`, `docs/ARCHITECTURE.md`, task spec                     | Context7 по Tauri                                  |
+| Testing task       | `AGENTS.md`, `docs/CODEMAP/testing.md`, `docs/TESTING_STRATEGY.md` | Документ по конкретной feature                     |
+| Documentation task | `AGENTS.md`, редактируемый документ                                | Связанные документы                                |
+| Review task        | `AGENTS.md`, текущий diff, task scope                              | Документ по изменённой области                     |
+
+## CODEMAP
+
+`docs/CODEMAP/` — короткая карта текущего кода и функционала. Она нужна, чтобы быстро понять, какие файлы читать для конкретной задачи, без веерного просмотра всего `src/`.
+
+Перед задачей читай только те CODEMAP-файлы, которые соответствуют области изменения. Если задача меняет код области, обнови соответствующий CODEMAP-файл в том же изменении.
 
 ## MCP
 

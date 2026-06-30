@@ -17,6 +17,8 @@ export interface SuggestionRequest {
 export interface Suggestion {
   id: string;
   text: string;
+  insertText?: string;
   kind: SuggestionKind;
   source: string;
+  replacementRange?: SuggestionRange;
 }

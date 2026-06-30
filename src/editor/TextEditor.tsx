@@ -1,33 +1,19 @@
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-} from "@codemirror/commands";
+import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { EditorState } from "@codemirror/state";
-import {
-  drawSelection,
-  dropCursor,
-  EditorView,
-  keymap,
-} from "@codemirror/view";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import { drawSelection, dropCursor, EditorView, keymap } from "@codemirror/view";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
-import { applySuggestion } from "../autocomplete/textContext";
 import type { PopupPosition } from "./SuggestionPopup";
 
 export type EditorCommand =
-  | "selectNext"
-  | "selectPrevious"
-  | "acceptCompletion"
-  | "closeCompletion";
+  "selectNext" | "selectPrevious" | "acceptCompletion" | "closeCompletion";
 
 export interface TextEditorHandle {
-  replaceRange(from: number, to: number, replacement: string): {
+  replaceRange(
+    from: number,
+    to: number,
+    replacement: string,
+  ): {
     text: string;
     cursorPosition: number;
   } | null;
@@ -35,20 +21,13 @@ export interface TextEditorHandle {
 
 interface TextEditorProps {
   initialValue: string;
-  onChange: (
-    text: string,
-    cursorPosition: number,
-    popupPosition: PopupPosition,
-  ) => void;
+  onChange: (text: string, cursorPosition: number, popupPosition: PopupPosition) => void;
   onCommand: (command: EditorCommand) => boolean;
   onFocusChange: (isFocused: boolean) => void;
 }
 
 export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(
-  function TextEditor(
-    { initialValue, onChange, onCommand, onFocusChange },
-    ref,
-  ) {
+  function TextEditor({ initialValue, onChange, onCommand, onFocusChange }, ref) {
     const hostRef = useRef<HTMLDivElement | null>(null);
     const viewRef = useRef<EditorView | null>(null);
     const callbacksRef = useRef({ onChange, onCommand, onFocusChange });
@@ -66,7 +45,10 @@ export const TextEditor = forwardRef<TextEditorHandle, TextEditorProps>(
         }
 
         const currentText = view.state.doc.toString();
-        const nextState = applySuggestion(currentText, { from, to }, replacement);
+        const nextState = {
+          text: `${currentText.slice(0, from)}${replacement}${currentText.slice(to)}`,
+          cursorPosition: from + replacement.length,
+        };
 
         view.dispatch({
           changes: { from, to, insert: replacement },

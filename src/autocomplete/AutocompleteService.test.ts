@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import { AutocompleteService } from "./AutocompleteService";
-import { MockSuggestionProvider } from "./MockSuggestionProvider";
 import type { SuggestionProvider } from "./SuggestionProvider";
 import {
   applySuggestion,
@@ -25,19 +24,14 @@ function makeRequest(prefix: string, limit = 7): SuggestionRequest {
 }
 
 describe("AutocompleteService", () => {
-  it("returns mock suggestions for Russian prefixes", async () => {
-    const service = new AutocompleteService(new MockSuggestionProvider());
-    const result = await service.getSuggestions(makeRequest("при"));
-
-    expect(result.status).toBe("available");
-    expect(result.suggestions.map((suggestion) => suggestion.text)).toEqual([
-      "привет",
-      "приятный день",
-    ]);
-  });
-
   it("filters and keeps a stable ranked order", async () => {
-    const service = new AutocompleteService(new MockSuggestionProvider());
+    const service = new AutocompleteService(
+      new StaticProvider("primary", [
+        makeSuggestion("primary-a", "продолжить мысль"),
+        makeSuggestion("primary-b", "можно продолжить"),
+        makeSuggestion("primary-c", "спасибо"),
+      ]),
+    );
     const result = await service.getSuggestions(makeRequest("про"));
 
     expect(result.suggestions.map((suggestion) => suggestion.text)).toEqual([
@@ -47,22 +41,17 @@ describe("AutocompleteService", () => {
   });
 
   it("ranks, deduplicates, and limits primary provider suggestions", async () => {
-    class PrimaryProvider implements SuggestionProvider {
-      readonly name = "primary";
-
-      async getSuggestions(): Promise<Suggestion[]> {
-        return [
-          makeSuggestion("primary-include-a", "мой привет"),
-          makeSuggestion("primary-start-a", "приветствие"),
-          makeSuggestion("primary-start-a-duplicate", " Приветствие "),
-          makeSuggestion("primary-start-b", "приятный день"),
-          makeSuggestion("primary-include-b", "сказать привет"),
-          makeSuggestion("primary-miss", "спасибо"),
-        ];
-      }
-    }
-
-    const service = new AutocompleteService(new PrimaryProvider(), { limit: 3 });
+    const service = new AutocompleteService(
+      new StaticProvider("primary", [
+        makeSuggestion("primary-include-a", "мой привет"),
+        makeSuggestion("primary-start-a", "приветствие"),
+        makeSuggestion("primary-start-a-duplicate", " Приветствие "),
+        makeSuggestion("primary-start-b", "приятный день"),
+        makeSuggestion("primary-include-b", "сказать привет"),
+        makeSuggestion("primary-miss", "спасибо"),
+      ]),
+      { limit: 3 },
+    );
     const result = await service.getSuggestions(makeRequest("при", 3));
 
     expect(result.status).toBe("available");
@@ -74,28 +63,47 @@ describe("AutocompleteService", () => {
     ]);
   });
 
-  it("uses fallback suggestions when the primary provider has no matches", async () => {
-    const service = new AutocompleteService(new MockSuggestionProvider());
-    const result = await service.getSuggestions(makeRequest("яяя"));
+  it("preserves provider-ranked suggestions that do not match generic prefix scoring", async () => {
+    const service = new AutocompleteService(
+      new StaticProvider(
+        "primary",
+        [makeSuggestion("primary-trigger", "простые n-граммы")],
+        "provider",
+      ),
+    );
+    const result = await service.getSuggestions(makeRequest("простые грам"));
 
-    expect(result.status).toBe("fallback");
-    expect(result.suggestions).toHaveLength(7);
-    expect(result.suggestions[0]?.source).toBe("mock");
+    expect(result.status).toBe("available");
+    expect(result.suggestions.map((suggestion) => suggestion.text)).toEqual([
+      "простые n-граммы",
+    ]);
   });
 
-  it("uses fallback suggestions when the primary provider fails", async () => {
-    class FailingProvider implements SuggestionProvider {
-      readonly name = "failing";
+  it("does not call fallback provider when primary has no matches by default", async () => {
+    const service = new AutocompleteService(
+      new StaticProvider("primary", [makeSuggestion("primary-a", "спасибо")]),
+      {
+        fallbackProvider: new FailingProvider("fallback"),
+      },
+    );
+    const result = await service.getSuggestions(makeRequest("яяя"));
 
-      async getSuggestions(): Promise<never> {
-        throw new Error("provider failed");
-      }
-    }
+    expect(result.status).toBe("empty");
+    expect(result.provider).toBe("primary");
+    expect(result.suggestions).toEqual([]);
+  });
 
-    const service = new AutocompleteService(new FailingProvider());
+  it("uses fallback provider when the primary provider fails and fallbackOnError is enabled", async () => {
+    const service = new AutocompleteService(new FailingProvider("primary"), {
+      fallbackOnError: true,
+      fallbackProvider: new StaticProvider("fallback", [
+        makeSuggestion("fallback-a", "привет"),
+      ]),
+    });
     const result = await service.getSuggestions(makeRequest("при"));
 
     expect(result.status).toBe("fallback");
+    expect(result.provider).toBe("fallback");
     expect(result.suggestions[0]?.text).toBe("привет");
   });
 });
@@ -107,6 +115,26 @@ function makeSuggestion(id: string, text: string): Suggestion {
     kind: "phrase",
     source: "test",
   };
+}
+
+class StaticProvider implements SuggestionProvider {
+  constructor(
+    readonly name: string,
+    private readonly suggestions: readonly Suggestion[],
+    readonly rankingMode: SuggestionProvider["rankingMode"] = "service",
+  ) {}
+
+  async getSuggestions(): Promise<Suggestion[]> {
+    return [...this.suggestions];
+  }
+}
+
+class FailingProvider implements SuggestionProvider {
+  constructor(readonly name: string) {}
+
+  async getSuggestions(): Promise<never> {
+    throw new Error("provider failed");
+  }
 }
 
 describe("text autocomplete helpers", () => {

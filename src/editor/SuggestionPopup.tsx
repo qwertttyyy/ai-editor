@@ -39,7 +39,8 @@ export function SuggestionPopup({
     const maxTop = window.innerHeight - viewportPadding - popupRect.height;
     const maxLeft = window.innerWidth - viewportPadding - popupRect.width;
     const topBelow = position.anchorBottom + popupGap;
-    const canFitBelow = topBelow + popupRect.height <= window.innerHeight - viewportPadding;
+    const canFitBelow =
+      topBelow + popupRect.height <= window.innerHeight - viewportPadding;
     const topAbove = position.anchorTop - popupGap - popupRect.height;
     const canFitAbove = topAbove >= viewportPadding;
     const nextTop =

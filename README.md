@@ -19,7 +19,7 @@
 - редактор на CodeMirror 6;
 - верхняя панель, центральная область редактора и нижняя status-панель;
 - светлая и тёмная тема;
-- mock/dictionary autocomplete;
+- быстрый локальный dictionary autocomplete слов и prefix-фраз без Ollama и сети;
 - выбор подсказки стрелками вверх/вниз;
 - принятие подсказки через `Tab`;
 - базовая архитектура `AutocompleteService` и `SuggestionProvider`;

@@ -13,7 +13,7 @@
 - fallback при ошибке или пустом результате provider;
 - функции ranking, parsing и state transitions.
 
-Любые интеграции с локальным inference мокать в unit-тестах.
+Любые интеграции с локальным inference заменять тестовыми doubles в unit-тестах.
 
 ## Component tests
 

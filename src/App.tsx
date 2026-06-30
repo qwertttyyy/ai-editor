@@ -1,19 +1,11 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
-  AutocompleteService,
-  type SuggestionResultStatus,
-} from "./autocomplete/AutocompleteService";
-import { MockSuggestionProvider } from "./autocomplete/MockSuggestionProvider";
-import type { Suggestion, SuggestionRequest } from "./autocomplete/types";
-import {
-  getCyrillicPrefixRange,
-  getNextSuggestionIndex,
-} from "./autocomplete/textContext";
-import {
-  SuggestionPopup,
-  type PopupPosition,
-} from "./editor/SuggestionPopup";
+  type ActiveCompletion,
+  EditorAutocompleteController,
+} from "./app/EditorAutocompleteController";
+import { createAutocompleteService } from "./app/createAutocompleteService";
+import { SuggestionPopup } from "./editor/SuggestionPopup";
 import {
   TextEditor,
   type EditorCommand,
@@ -22,94 +14,48 @@ import {
 
 type Theme = "light" | "dark";
 
-interface ActiveCompletion {
-  request: SuggestionRequest;
-  suggestions: Suggestion[];
-  selectedIndex: number;
-  status: SuggestionResultStatus;
-  position: PopupPosition;
-}
-
 const initialText =
   "Начните писать русский текст. Например: привет, важная мысль, можно продолжить.";
 
 export function App() {
   const editorRef = useRef<TextEditorHandle>(null);
-  const requestVersionRef = useRef(0);
   const [theme, setTheme] = useState<Theme>("light");
   const [text, setText] = useState(initialText);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
-  const [activeCompletion, setActiveCompletion] = useState<ActiveCompletion | null>(
-    null,
-  );
+  const [activeCompletion, setActiveCompletion] = useState<ActiveCompletion | null>(null);
 
-  const autocompleteService = useMemo(
-    () =>
-      new AutocompleteService(new MockSuggestionProvider(), {
-        limit: 7,
-      }),
+  const autocompleteController = useMemo(
+    () => new EditorAutocompleteController(createAutocompleteService()),
     [],
   );
 
-  const closeCompletion = useCallback(() => {
-    requestVersionRef.current += 1;
-    setActiveCompletion(null);
-  }, []);
-
   const updateCompletion = useCallback(
-    async (nextText: string, cursorPosition: number, position: PopupPosition) => {
-      const prefixRange = getCyrillicPrefixRange(nextText, cursorPosition);
-
-      if (!prefixRange) {
-        closeCompletion();
-        return;
-      }
-
-      const version = requestVersionRef.current + 1;
-      requestVersionRef.current = version;
-
-      const request: SuggestionRequest = {
-        text: nextText,
+    async (
+      nextText: string,
+      cursorPosition: number,
+      position: ActiveCompletion["position"],
+    ) => {
+      const completion = await autocompleteController.updateCompletion(
+        nextText,
         cursorPosition,
-        prefix: prefixRange.prefix,
-        replacementRange: {
-          from: prefixRange.from,
-          to: prefixRange.to,
-        },
-        language: "ru",
-        limit: 7,
-      };
-
-      const result = await autocompleteService.getSuggestions(request);
-
-      if (requestVersionRef.current !== version) {
-        return;
-      }
-
-      if (result.suggestions.length === 0) {
-        setActiveCompletion({
-          request,
-          suggestions: [],
-          selectedIndex: 0,
-          status: result.status,
-          position,
-        });
-        return;
-      }
-
-      setActiveCompletion({
-        request,
-        suggestions: result.suggestions,
-        selectedIndex: 0,
-        status: result.status,
         position,
-      });
+      );
+
+      if (completion === undefined) {
+        return;
+      }
+
+      setActiveCompletion(completion);
     },
-    [autocompleteService, closeCompletion],
+    [autocompleteController],
   );
 
   const handleEditorChange = useCallback(
-    (nextText: string, cursorPosition: number, position: PopupPosition) => {
+    (
+      nextText: string,
+      cursorPosition: number,
+      position: ActiveCompletion["position"],
+    ) => {
       setText(nextText);
       void updateCompletion(nextText, cursorPosition, position);
     },
@@ -117,66 +63,48 @@ export function App() {
   );
 
   const acceptSelectedSuggestion = useCallback(() => {
-    if (!activeCompletion || activeCompletion.suggestions.length === 0) {
-      return false;
-    }
+    const result = autocompleteController.handleEditorCommand(
+      activeCompletion,
+      "acceptCompletion",
+    );
 
-    const suggestion = activeCompletion.suggestions[activeCompletion.selectedIndex];
-    if (!suggestion) {
+    if (!result.handled || !result.replacement) {
       return false;
     }
 
     const nextState = editorRef.current?.replaceRange(
-      activeCompletion.request.replacementRange.from,
-      activeCompletion.request.replacementRange.to,
-      suggestion.text,
+      result.replacement.from,
+      result.replacement.to,
+      result.replacement.text,
     );
-
     if (nextState) {
       setText(nextState.text);
     }
 
-    closeCompletion();
+    setActiveCompletion(result.completion);
     return true;
-  }, [activeCompletion, closeCompletion]);
+  }, [activeCompletion, autocompleteController]);
 
   const handleEditorCommand = useCallback(
     (command: EditorCommand) => {
-      if (!activeCompletion) {
-        return false;
-      }
-
-      if (command === "closeCompletion") {
-        closeCompletion();
-        return true;
-      }
-
-      if (activeCompletion.suggestions.length === 0) {
-        return false;
-      }
-
       if (command === "acceptCompletion") {
         return acceptSelectedSuggestion();
       }
 
-      setActiveCompletion((current) => {
-        if (!current) {
-          return current;
-        }
+      const result = autocompleteController.handleEditorCommand(
+        activeCompletion,
+        command,
+      );
 
-        return {
-          ...current,
-          selectedIndex: getNextSuggestionIndex(
-            current.selectedIndex,
-            current.suggestions.length,
-            command === "selectNext" ? "next" : "previous",
-          ),
-        };
-      });
+      if (!result.handled) {
+        return false;
+      }
+
+      setActiveCompletion(result.completion);
 
       return true;
     },
-    [acceptSelectedSuggestion, activeCompletion, closeCompletion],
+    [acceptSelectedSuggestion, activeCompletion, autocompleteController],
   );
 
   const characterCount = text.length;
@@ -197,11 +125,13 @@ export function App() {
           <span className="brand-title">ai-editor</span>
         </div>
         <div className="top-meta">
-          <span>Mock provider</span>
+          <span>Dictionary provider</span>
           <button
             className="theme-toggle"
             type="button"
-            onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+            onClick={() =>
+              setTheme((current) => (current === "light" ? "dark" : "light"))
+            }
             aria-label="Переключить тему"
           >
             {theme === "light" ? "Dark" : "Light"}
@@ -231,7 +161,7 @@ export function App() {
       </main>
 
       <footer className="status-bar">
-        <span>Provider: Mock</span>
+        <span>Provider: {activeCompletion?.provider ?? "Dictionary"}</span>
         <span>Autocomplete: {hasSuggestions ? "available" : autocompleteLabel}</span>
         <span>{characterCount} chars</span>
         <span>{wordCount} words</span>

@@ -9,11 +9,15 @@ export function rankSuggestions(
   const seen = new Set<string>();
 
   return suggestions
-    .map((suggestion, index) => ({
-      suggestion,
-      index,
-      score: scoreSuggestion(suggestion.text, normalizedPrefix),
-    }))
+    .map((suggestion, index) => {
+      const activePrefix = getSuggestionPrefix(suggestion, request, normalizedPrefix);
+
+      return {
+        suggestion,
+        index,
+        score: scoreSuggestion(suggestion.text, activePrefix),
+      };
+    })
     .filter(({ suggestion, score }) => {
       const key = normalize(suggestion.text);
       if (seen.has(key) || score === 0) {
@@ -28,6 +32,31 @@ export function rankSuggestions(
     .map(({ suggestion }) => suggestion);
 }
 
+export function dedupeAndLimitSuggestions(
+  suggestions: Suggestion[],
+  limit: number,
+): Suggestion[] {
+  const seen = new Set<string>();
+  const result: Suggestion[] = [];
+
+  for (const suggestion of suggestions) {
+    const key = normalize(suggestion.text);
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    result.push(suggestion);
+
+    if (result.length >= limit) {
+      break;
+    }
+  }
+
+  return result;
+}
+
 function scoreSuggestion(text: string, normalizedPrefix: string) {
   if (!normalizedPrefix) {
     return 1;
@@ -36,7 +65,7 @@ function scoreSuggestion(text: string, normalizedPrefix: string) {
   const normalizedText = normalize(text);
 
   if (normalizedText === normalizedPrefix) {
-    return 4;
+    return 0;
   }
 
   if (normalizedText.startsWith(normalizedPrefix)) {
@@ -52,4 +81,22 @@ function scoreSuggestion(text: string, normalizedPrefix: string) {
 
 function normalize(value: string) {
   return value.trim().toLocaleLowerCase("ru-RU");
+}
+
+function getSuggestionPrefix(
+  suggestion: Suggestion,
+  request: SuggestionRequest,
+  fallbackPrefix: string,
+) {
+  const range = suggestion.replacementRange;
+
+  if (!range) {
+    return fallbackPrefix;
+  }
+
+  if (range.from < 0 || range.to < range.from || range.to > request.text.length) {
+    return fallbackPrefix;
+  }
+
+  return normalize(request.text.slice(range.from, range.to));
 }
